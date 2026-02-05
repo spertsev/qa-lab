@@ -1,2 +1,4 @@
-# qa-automation-lab
-A collection of QA automation projects, tools, and experiments I use for learning and improving quality
+# qa-lab
+Лаборатория для экспериментов и практики в области QA.
+
+Репозиторий содержит примеры, инструменты и прототипы, связанные с ручным и автоматизированным тестированием, а также с исследованием технологий и подходов к обеспечению качества ПО.
