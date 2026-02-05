@@ -1,0 +1,31 @@
+services:
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+      - "5900:5900"   # VNC (опционально)
+    # Ждём, пока Selenium полностью поднимется и начнёт отвечать на /status
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sSf http://localhost:4444/status > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  tests:
+    build:
+      # В качестве контекста используем корень репозитория,
+      # чтобы были доступны и requirements.txt, и каталог tests
+      context: ..
+      dockerfile: docker/python-tests-dockerfile
+    # Запускаем тесты только после того, как Selenium станет здоровым
+    depends_on:
+      selenium:
+        condition: service_healthy
+    environment:
+      # Внутри docker-сети обращаемся к сервису selenium по его имени
+      - SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+    volumes:
+      # Монтируем allure-results из корня проекта, чтобы отчёты были доступны как при локальном запуске
+      - ../allure-results:/tests/allure-results

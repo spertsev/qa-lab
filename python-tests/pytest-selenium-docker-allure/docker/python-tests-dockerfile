@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Чтобы логи сразу шли в stdout (важно для CI)
+# PYTHONUNBUFFERED=1: Запрещает Python буферизировать вывод. Логи (print, ошибки) мгновенно попадают в консоль Docker/CI, не «застревая» в памяти
+# PYTHONDONTWRITEBYTECODE=1: Запрещает Python создавать файлы .pyc (байт-код). В контейнере они не нужны, так как код не меняется, а это экономит место
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /tests
+
+# Системные зависимости (минимум)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python-зависимости
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем тесты
+COPY . .
+
+# Чтобы импорты работали стабильно
+ENV PYTHONPATH=/tests
+
+# По умолчанию — просто pytest
+ENTRYPOINT ["pytest"]
